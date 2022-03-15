@@ -351,7 +351,7 @@ function parse(line) {
     // but are also quote-enclosed for strings containing spaces.
     var field_names = [
         'type',
-        esDomain.timestampFieldName,
+        'time',
         'elb',
         'client',
         'target',
@@ -370,9 +370,15 @@ function parse(line) {
         'trace_id',
         'domain_name',
         'chosen_cert_arn',
-        'waf_number',
-        'waf_time',
-        'waf_message'
+        'matched_rule_priority',
+        'request_creation_time',
+        'actions_executed',
+        'redirect_url',
+        'error_reason',
+        'target_list',
+        'target_status_code_list',
+        'classification',
+        'classification_reason'
     ];
 
     // First phase, separate out the fields
