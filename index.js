@@ -447,6 +447,14 @@ function parse(line) {
         }
     }
 
+    // list_fields = ['target_list', 'target_status_code_list']
+    // for (var field in list_fields) {
+    //     var orig = parsed[list_fields[field]];
+
+    //     splat = orig.split(" ");
+    //     parsed[list_fields[field]] = splat
+    // }
+
     // Dropping the target status code if there isn't one
     if (parsed['target_status_code'] == '-') {
         delete parsed['target_status_code']
