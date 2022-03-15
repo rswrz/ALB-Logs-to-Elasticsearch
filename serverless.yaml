@@ -1,0 +1,64 @@
+service: ops-alb-logs-to-elasticsearch
+
+provider:
+  name: aws
+  memorySize: 512
+  runtime: nodejs12.x
+  region: ${opt:region, 'eu-central-1'}
+  stage: ${opt:stage, 'dev'} # [ dev | staging | production ]
+  timeout: 15
+  vpc:
+    securityGroupIds:
+      - !Ref SecurityGroup
+    subnetIds:
+      - !ImportValue base-vpc-SubnetPrivateA
+      - !ImportValue base-vpc-SubnetPrivateB
+      - !ImportValue base-vpc-SubnetPrivateC
+  iamRoleStatements:
+    - Effect: Allow
+      Action: es:*
+      Resource:
+        Fn::Sub:
+          - ${domain_arn}/*
+          - domain_arn:
+              Fn::ImportValue: elasticsearch-clsvc-ESDomainArn
+    - Effect: Allow
+      Action: s3:*
+      Resource: arn:aws:s3:::e3dc-production-backend-accesslogs-eu-central-1-936929063908
+    - Effect: Allow
+      Action: s3:*
+      Resource: arn:aws:s3:::e3dc-production-backend-accesslogs-eu-central-1-936929063908/*
+
+
+functions:
+  index:
+    handler: index.handler
+    environment:
+      ES_DOCTYPE: _doc
+      ES_ENDPOINT: https://vpc-esiot-73w37dnbmps3vo2mbrpfyxgqk4.eu-central-1.es.amazonaws.com:443
+      ES_INDEX_PREFIX: alb
+      ES_REGION: ${opt:region, 'eu-central-1'}
+      ES_BULKSIZE: 200
+      GEOIP_LOOKUP_ENABLED: false
+    events:
+      - s3:
+          bucket: e3dc-staging-legacy-elb-accesslogs-eu-central-1-510175581210
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .log.gz
+          existing: true
+
+resources:
+  Resources:
+    SecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: No inbound; Any outbound
+        SecurityGroupEgress:
+          - CidrIp: 0.0.0.0/0
+            IpProtocol: '-1'
+        VpcId: !ImportValue base-vpc-VPC
+
+    IndexLogGroup:
+      Properties:
+        RetentionInDays: "30"
