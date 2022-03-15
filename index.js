@@ -60,7 +60,6 @@ exports.handler = function(event, context) {
     esDomain = {
         endpoint: process.env.ES_ENDPOINT,
         index: indexName,
-        doctype: process.env.ES_DOCTYPE,
         extraFields: JSON.parse(process.env.ES_EXTRA_FIELDS || '{}'),
         maxBulkIndexLines: process.env.ES_BULKSIZE // Max Number of log lines to send per bulk interaction with ES
     };
@@ -158,7 +157,7 @@ exports.handler = function(event, context) {
  * Get the log file from the given S3 bucket and key.  Parse it and add
  * each log record to the ES domain.
  *
- * Note: The Lambda function should be configured to filter for 
+ * Note: The Lambda function should be configured to filter for
  * .log.gz files (as part of the Event Source "suffix" setting).
  */
 function s3LogsToES(bucket, key, context, lineStream, recordStream) {
@@ -215,7 +214,6 @@ function prepareESIndexAsync(index, client) {
       console.log(`Putting the GeoIP mapping into index ${index}`);
       return client.indices.putMapping({
         index,
-        type: process.env.ES_DOCTYPE,
         body: {
           properties: {
             location: {
@@ -268,7 +266,6 @@ async function prepareESIndex(indexName, client) {
         console.log("Index " + indexName + " exists. Putting the GeoIP mapping to be sure it's there.");
         await client.indices.putMapping({
             index: indexName,
-            type: process.env.ES_DOCTYPE,
             body: location_mapping
         });
         console.log("Ready to log!")
@@ -281,7 +278,6 @@ async function prepareESIndex(indexName, client) {
         console.log("Also putting mapping for location field");
         await client.indices.putMapping({
             index: indexName,
-            type: process.env.ES_DOCTYPE,
             body: location_mapping
         });
         console.log("Ready to log!")
